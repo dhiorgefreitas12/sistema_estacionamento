@@ -1,0 +1,11 @@
+br/com/estacionamento/Sistema/de/Estacionamento/repository/SectorRepository.class
+br/com/estacionamento/Sistema/de/Estacionamento/integration/client/GarageClient.class
+br/com/estacionamento/Sistema/de/Estacionamento/service/GarageService.class
+br/com/estacionamento/Sistema/de/Estacionamento/model/Sector.class
+br/com/estacionamento/Sistema/de/Estacionamento/scheduler/GarageStartupLoader.class
+br/com/estacionamento/Sistema/de/Estacionamento/SistemaDeEstacionamentoApplication.class
+br/com/estacionamento/Sistema/de/Estacionamento/dto/SpotDTO.class
+br/com/estacionamento/Sistema/de/Estacionamento/dto/SectorDTO.class
+br/com/estacionamento/Sistema/de/Estacionamento/dto/GarageResponse.class
+br/com/estacionamento/Sistema/de/Estacionamento/model/Spot.class
+br/com/estacionamento/Sistema/de/Estacionamento/repository/SpotRepository.class
