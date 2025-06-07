@@ -1,6 +1,9 @@
 package br.com.estacionamento.Sistema.de.Estacionamento.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -25,5 +28,5 @@ public class Spot {
     private double lng;
 
     @Column(nullable = false)
-    private boolean occupied = false;
+    private boolean occupy = false;
 }

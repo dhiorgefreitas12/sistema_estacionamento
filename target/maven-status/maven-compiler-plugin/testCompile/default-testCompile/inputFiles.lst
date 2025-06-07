@@ -1,1 +1,8 @@
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/SistemaDeEstacionamentoApplicationTests.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/controller/PlateStatusControllerTest.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/controller/SpotStatusControllerTest.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/controller/WebhookControllerTest.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/service/EventServiceTest.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/service/GarageServiceTest.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/service/PlateStatusServiceTest.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/test/java/br/com/estacionamento/Sistema/de/Estacionamento/service/SpotStatusServiceTest.java

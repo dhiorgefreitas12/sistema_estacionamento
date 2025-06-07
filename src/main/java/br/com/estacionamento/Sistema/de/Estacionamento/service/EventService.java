@@ -33,7 +33,7 @@ public class EventService {
 
     public void processEvent(WebhookEventDTO event) {
         if (event == null || event.event_type() == null || event.license_plate() == null) {
-            throw new BusinessException("Evento, tipo de evento ou placa não podem ser nulos.");
+            throw new BusinessException("evento, tipo de evento ou placa nao podem ser nulos.");
         }
 
         EventType type = event.event_type();
@@ -43,7 +43,7 @@ public class EventService {
             case ENTRY -> handleEntry(event, plate);
             case PARKED -> handleParked(event, plate);
             case EXIT -> handleExit(event, plate);
-            default -> throw new BusinessException("Tipo de evento desconhecido: " + type);
+            default -> throw new BusinessException("tipo de evento desconhecido: " + type);
         }
     }
 
@@ -52,23 +52,22 @@ public class EventService {
         if (lastSession != null && lastSession.getExitTime() == null) return;
 
         Spot spot = spotRepository.findByLatAndLng(event.lat(), event.lng())
-                .orElseThrow(() -> new ResourceNotFoundException("Vaga não encontrada para as coordenadas informadas."));
+                .orElseThrow(() -> new ResourceNotFoundException("vaga nao encontrada para as coordenadas informadas."));
 
         Sector sector = sectorRepository.findBySector(spot.getSector());
         if (sector == null) {
-            throw new ResourceNotFoundException("Setor '" + spot.getSector() + "' não encontrado.");
+            throw new ResourceNotFoundException("setor '" + spot.getSector() + "' nao encontrado.");
         }
 
         long totalVagas = sector.getMaxCapacity();
-        long ocupadas = spotRepository.countBySectorAndOccupiedTrue(sector.getSector());
+        long ocupadas = spotRepository.countBySectorAndOccupyTrue(sector.getSector());
         double ocupacao = (double) ocupadas / totalVagas;
 
         if (ocupadas >= totalVagas) {
-            throw new BusinessException("Setor " + sector.getSector() + " está com 100% de lotação. Entrada não permitida.");
+            throw new BusinessException("setor " + sector.getSector() + " esta com 100% de lotacao. Entrada não permitida.");
         }
 
         double basePrice = sector.getBasePrice();
-
         if (ocupacao < 0.25) {
             basePrice *= 0.9;
         } else if (ocupacao < 0.5) {
@@ -79,7 +78,7 @@ public class EventService {
             basePrice *= 1.25;
         }
 
-        spot.setOccupied(true);
+        spot.setOccupy(true);
         spotRepository.save(spot);
 
         ParkingSession session = new ParkingSession();
@@ -92,12 +91,11 @@ public class EventService {
         parkingSessionRepository.save(session);
     }
 
-
     private void handleParked(WebhookEventDTO event, String plate) {
         Spot spot = spotRepository.findByLatAndLng(event.lat(), event.lng())
-                .orElseThrow(() -> new ResourceNotFoundException("Vaga não encontrada para as coordenadas informadas."));
+                .orElseThrow(() -> new ResourceNotFoundException("vaga nao encontrada para as coordenadas informadas."));
 
-        spot.setOccupied(true);
+        spot.setOccupy(true);
         spotRepository.save(spot);
 
         ParkingSession session = parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(plate);
@@ -122,7 +120,7 @@ public class EventService {
         if (minutes > 15) {
             Sector sector = sectorRepository.findBySector(session.getSector());
             if (sector == null) {
-                throw new ResourceNotFoundException("Setor '" + session.getSector() + "' não encontrado para cálculo de preço.");
+                throw new ResourceNotFoundException("setor '" + session.getSector() + "' nao encontrado para calculo de preco.");
             }
             price = calculatePrice(minutes, session.getPrice());
         }
@@ -130,9 +128,9 @@ public class EventService {
         session.setPrice(price);
 
         if (session.getSpotId() != null) {
-            spotRepository.findById(session.getSpotId()).ifPresent(s -> {
-                s.setOccupied(false);
-                spotRepository.save(s);
+            spotRepository.findById(session.getSpotId()).ifPresent(spot -> {
+                spot.setOccupy(false);
+                spotRepository.save(spot);
             });
         }
 

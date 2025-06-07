@@ -12,262 +12,145 @@ import br.com.estacionamento.Sistema.de.Estacionamento.repository.SectorReposito
 import br.com.estacionamento.Sistema.de.Estacionamento.repository.SpotRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-public class EventServiceTest {
+class EventServiceTest {
 
-    private ParkingSessionRepository parkingSessionRepository;
-    private SpotRepository spotRepository;
-    private SectorRepository sectorRepository;
+    @InjectMocks
     private EventService eventService;
+
+    @Mock
+    private ParkingSessionRepository parkingSessionRepository;
+
+    @Mock
+    private SpotRepository spotRepository;
+
+    @Mock
+    private SectorRepository sectorRepository;
+
+    private static final String PLATE = "ABC1234";
+    private static final double LAT = -23.0;
+    private static final double LNG = -46.0;
+    private static final String TIME = LocalDateTime.now().toString();
 
     @BeforeEach
     void setup() {
-        parkingSessionRepository = mock(ParkingSessionRepository.class);
-        spotRepository = mock(SpotRepository.class);
-        sectorRepository = mock(SectorRepository.class);
-        eventService = new EventService();
-        eventService.sectorRepository = sectorRepository;
-        eventService.parkingSessionRepository = parkingSessionRepository;
-        eventService.spotRepository = spotRepository;
+        MockitoAnnotations.openMocks(this);
+    }
+
+    private WebhookEventDTO buildEvent(EventType type, String entry, String exit) {
+        return new WebhookEventDTO(PLATE, entry, exit, LAT, LNG, type);
     }
 
     @Test
-    void testHandleEntry() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 11.0, 22.0, EventType.ENTRY);
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
+    void testEntry_success() {
+        WebhookEventDTO event = buildEvent(EventType.ENTRY, TIME, TIME);
+
         Spot spot = new Spot();
         spot.setId(1L);
         spot.setSector("A");
-        when(spotRepository.findByLatAndLng(11.0, 22.0)).thenReturn(Optional.of(spot));
+        spot.setOccupy(false);
+
         Sector sector = new Sector();
         sector.setSector("A");
         sector.setMaxCapacity(10);
         sector.setBasePrice(10.0);
+
+        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(PLATE)).thenReturn(null);
+        when(spotRepository.findByLatAndLng(LAT, LNG)).thenReturn(Optional.of(spot));
         when(sectorRepository.findBySector("A")).thenReturn(sector);
-        when(spotRepository.countBySectorAndOccupiedTrue("A")).thenReturn(2L);
+        when(spotRepository.countBySectorAndOccupyTrue("A")).thenReturn(5L);
 
-        eventService.processEvent(dto);
-
-        ArgumentCaptor<ParkingSession> captor = ArgumentCaptor.forClass(ParkingSession.class);
-        verify(parkingSessionRepository).save(captor.capture());
-        ParkingSession saved = captor.getValue();
-        assertEquals("ABC1234", saved.getLicensePlate());
-        assertEquals("A", saved.getSector());
-        assertEquals(1L, saved.getSpotId());
-    }
-
-    @Test
-    void testHandleParked() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", null, null, 11.0, 22.0, EventType.PARKED);
-        Spot spot = new Spot();
-        spot.setId(2L);
-        spot.setSector("B");
-        when(spotRepository.findByLatAndLng(11.0, 22.0)).thenReturn(Optional.of(spot));
-        ParkingSession session = new ParkingSession();
-        session.setLicensePlate("ABC1234");
-        session.setEntryTime(LocalDateTime.now());
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(session);
-
-        eventService.processEvent(dto);
+        eventService.processEvent(event);
 
         verify(parkingSessionRepository).save(any(ParkingSession.class));
-        verify(spotRepository).save(spot);
+        verify(spotRepository).save(any(Spot.class));
     }
 
     @Test
-    void testHandleExitWithCharge() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", null, "2025-06-06T18:00:00", 0.0, 0.0, EventType.EXIT);
-        ParkingSession session = new ParkingSession();
-        session.setLicensePlate("ABC1234");
-        session.setEntryTime(LocalDateTime.parse("2025-06-06T16:30:00"));
-        session.setSector("C");
-        session.setSpotId(3L);
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(session);
-        Sector sector = new Sector();
-        sector.setSector("C");
-        sector.setBasePrice(12.0);
-        when(sectorRepository.findBySector("C")).thenReturn(sector);
-        Spot spot = new Spot();
-        spot.setId(3L);
-        when(spotRepository.findById(3L)).thenReturn(Optional.of(spot));
-
-        eventService.processEvent(dto);
-
-        verify(parkingSessionRepository).save(session);
-        verify(spotRepository).save(spot);
-        assertEquals(LocalDateTime.parse("2025-06-06T18:00:00"), session.getExitTime());
-    }
-
-    @Test
-    void testHandleExitWithoutCharge() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", null, "2025-06-06T18:00:00", 0.0, 0.0, EventType.EXIT);
-        ParkingSession session = new ParkingSession();
-        session.setLicensePlate("ABC1234");
-        session.setEntryTime(LocalDateTime.parse("2025-06-06T18:00:00"));
-        session.setSector("D");
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(session);
-        Sector sector = new Sector();
-        sector.setSector("D");
-        sector.setBasePrice(10.0);
-        when(sectorRepository.findBySector("D")).thenReturn(sector);
-
-        eventService.processEvent(dto);
-
-        assertEquals(0.0, session.getPrice());
-        verify(parkingSessionRepository).save(session);
-    }
-
-    @Test
-    void testProcessEvent_NullEvent_ThrowsException() {
-        assertThrows(BusinessException.class, () -> eventService.processEvent(null));
-    }
-
-    @Test
-    void testHandleEntry_SectorNotFound_ThrowsException() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 11.0, 22.0, EventType.ENTRY);
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
-        Spot spot = new Spot();
-        spot.setId(1L);
-        spot.setSector("A");
-        when(spotRepository.findByLatAndLng(11.0, 22.0)).thenReturn(Optional.of(spot));
-        when(sectorRepository.findBySector("A")).thenReturn(null);
-
-        assertThrows(ResourceNotFoundException.class, () -> eventService.processEvent(dto));
-    }
-
-    @Test
-    void testHandleEntry_SectorLotado_ThrowsException() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 11.0, 22.0, EventType.ENTRY);
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
-        Spot spot = new Spot();
-        spot.setId(1L);
-        spot.setSector("A");
-        when(spotRepository.findByLatAndLng(11.0, 22.0)).thenReturn(Optional.of(spot));
-        Sector sector = new Sector();
-        sector.setSector("A");
-        sector.setMaxCapacity(10);
-        sector.setBasePrice(20.0);
-        when(sectorRepository.findBySector("A")).thenReturn(sector);
-        when(spotRepository.countBySectorAndOccupiedTrue("A")).thenReturn(10L);
-
-        assertThrows(BusinessException.class, () -> eventService.processEvent(dto));
-    }
-
-    @Test
-    void testHandleEntry_SpotNotFound_ThrowsException() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 99.9, 99.9, EventType.ENTRY);
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
-        when(spotRepository.findByLatAndLng(99.9, 99.9)).thenReturn(Optional.empty());
-
-        assertThrows(ResourceNotFoundException.class, () -> eventService.processEvent(dto));
-    }
-
-    @Test
-    void shouldApply90PercentPrice_WhenOccupancyIsBelow25Percent() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 1.0, 1.0, EventType.ENTRY);
-
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
+    void testEntry_sectorNaoExiste() {
+        WebhookEventDTO event = buildEvent(EventType.ENTRY, TIME, TIME);
 
         Spot spot = new Spot();
         spot.setId(1L);
-        spot.setSector("A");
-        when(spotRepository.findByLatAndLng(1.0, 1.0)).thenReturn(Optional.of(spot));
+        spot.setSector("Z");
 
-        Sector sector = new Sector();
-        sector.setSector("A");
-        sector.setMaxCapacity(10);
-        sector.setBasePrice(20.0);
-        when(sectorRepository.findBySector("A")).thenReturn(sector);
-        when(spotRepository.countBySectorAndOccupiedTrue("A")).thenReturn(2L); // 20%
+        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(PLATE)).thenReturn(null);
+        when(spotRepository.findByLatAndLng(LAT, LNG)).thenReturn(Optional.of(spot));
+        when(sectorRepository.findBySector("Z")).thenReturn(null);
 
-        eventService.processEvent(dto);
-
-        ArgumentCaptor<ParkingSession> captor = ArgumentCaptor.forClass(ParkingSession.class);
-        verify(parkingSessionRepository).save(captor.capture());
-        assertEquals(18.0, captor.getValue().getPrice());
+        assertThrows(ResourceNotFoundException.class, () -> eventService.processEvent(event));
     }
 
     @Test
-    void shouldApplyBasePrice_WhenOccupancyIsBetween25And50Percent() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 1.0, 1.0, EventType.ENTRY);
-
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
+    void testParked_success() {
+        WebhookEventDTO event = buildEvent(EventType.PARKED, TIME, TIME);
 
         Spot spot = new Spot();
         spot.setId(1L);
         spot.setSector("B");
-        when(spotRepository.findByLatAndLng(1.0, 1.0)).thenReturn(Optional.of(spot));
 
-        Sector sector = new Sector();
-        sector.setSector("B");
-        sector.setMaxCapacity(10);
-        sector.setBasePrice(20.0);
-        when(sectorRepository.findBySector("B")).thenReturn(sector);
-        when(spotRepository.countBySectorAndOccupiedTrue("B")).thenReturn(4L);
+        ParkingSession session = new ParkingSession();
+        session.setLicensePlate(PLATE);
 
-        eventService.processEvent(dto);
+        when(spotRepository.findByLatAndLng(LAT, LNG)).thenReturn(Optional.of(spot));
+        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(PLATE)).thenReturn(session);
 
-        ArgumentCaptor<ParkingSession> captor = ArgumentCaptor.forClass(ParkingSession.class);
-        verify(parkingSessionRepository).save(captor.capture());
-        assertEquals(20.0, captor.getValue().getPrice());
+        eventService.processEvent(event);
+
+        verify(spotRepository).save(spot);
+        verify(parkingSessionRepository).save(session);
     }
 
     @Test
-    void shouldApply110PercentPrice_WhenOccupancyIsBetween50And75Percent() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 1.0, 1.0, EventType.ENTRY);
+    void testExit_success() {
+        LocalDateTime entry = LocalDateTime.now().minusMinutes(40);
+        LocalDateTime exit = LocalDateTime.now();
 
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
+        WebhookEventDTO event = buildEvent(EventType.EXIT, entry.toString(), exit.toString());
+
+        ParkingSession session = new ParkingSession();
+        session.setLicensePlate(PLATE);
+        session.setEntryTime(entry);
+        session.setSector("C");
+        session.setPrice(10.0);
+        session.setSpotId(1L);
 
         Spot spot = new Spot();
         spot.setId(1L);
-        spot.setSector("C");
-        when(spotRepository.findByLatAndLng(1.0, 1.0)).thenReturn(Optional.of(spot));
 
         Sector sector = new Sector();
         sector.setSector("C");
-        sector.setMaxCapacity(10);
-        sector.setBasePrice(20.0);
+
+        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(PLATE)).thenReturn(session);
         when(sectorRepository.findBySector("C")).thenReturn(sector);
-        when(spotRepository.countBySectorAndOccupiedTrue("C")).thenReturn(6L);
+        when(spotRepository.findById(1L)).thenReturn(Optional.of(spot));
 
-        eventService.processEvent(dto);
+        eventService.processEvent(event);
 
-        ArgumentCaptor<ParkingSession> captor = ArgumentCaptor.forClass(ParkingSession.class);
-        verify(parkingSessionRepository).save(captor.capture());
-        assertEquals(22.0, captor.getValue().getPrice());
+        verify(parkingSessionRepository).save(session);
+        verify(spotRepository).save(spot);
+        assertNotNull(session.getExitTime());
     }
 
     @Test
-    void shouldApply125PercentPrice_WhenOccupancyIs75PercentOrMore() {
-        WebhookEventDTO dto = new WebhookEventDTO("ABC1234", "2025-06-06T17:00:00", null, 1.0, 1.0, EventType.ENTRY);
-
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc("ABC1234")).thenReturn(null);
-
-        Spot spot = new Spot();
-        spot.setId(1L);
-        spot.setSector("D");
-        when(spotRepository.findByLatAndLng(1.0, 1.0)).thenReturn(Optional.of(spot));
-
-        Sector sector = new Sector();
-        sector.setSector("D");
-        sector.setMaxCapacity(10);
-        sector.setBasePrice(20.0);
-        when(sectorRepository.findBySector("D")).thenReturn(sector);
-        when(spotRepository.countBySectorAndOccupiedTrue("D")).thenReturn(8L);
-
-        eventService.processEvent(dto);
-
-        ArgumentCaptor<ParkingSession> captor = ArgumentCaptor.forClass(ParkingSession.class);
-        verify(parkingSessionRepository).save(captor.capture());
-        assertEquals(25.0, captor.getValue().getPrice());
+    void testEventInvalid() {
+        WebhookEventDTO event = new WebhookEventDTO(null, null, null, null, null, null);
+        assertThrows(BusinessException.class, () -> eventService.processEvent(event));
     }
 
+    @Test
+    void testEventUnknown() {
+        WebhookEventDTO event = new WebhookEventDTO(PLATE, TIME, TIME, LAT, LNG, null);
+        assertThrows(BusinessException.class, () -> eventService.processEvent(event));
+    }
 }

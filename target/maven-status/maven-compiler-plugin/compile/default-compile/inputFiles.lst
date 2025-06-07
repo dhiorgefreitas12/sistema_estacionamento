@@ -1,9 +1,20 @@
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/SistemaDeEstacionamentoApplication.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/controller/PlateStatusController.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/controller/SpotStatusController.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/controller/WebhookController.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/GarageResponse.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/PlateStatusRequestDTO.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/PlateStatusResponseDTO.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/SectorDTO.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/SpotDTO.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/SpotStatusRequestDTO.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/SpotStatusResponseDTO.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/dto/WebhookEventDTO.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/enums/EventType.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/exception/ApiError.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/exception/BusinessException.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/exception/GlobalExceptionHandler.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/exception/ResourceNotFoundException.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/integration/client/GarageClient.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/model/ParkingSession.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/model/Sector.java
@@ -14,3 +25,5 @@
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/scheduler/GarageStartupLoader.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/service/EventService.java
 /Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/service/GarageService.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/service/PlateStatusService.java
+/Users/dhiorgefreitas/Documents/desenv/projetos-pessoais/sistema_estacionamento/src/main/java/br/com/estacionamento/Sistema/de/Estacionamento/service/SpotStatusService.java

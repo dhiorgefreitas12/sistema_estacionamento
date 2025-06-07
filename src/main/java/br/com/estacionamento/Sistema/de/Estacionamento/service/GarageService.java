@@ -51,7 +51,7 @@ public class GarageService {
                         spot.setSector(dto.sector());
                         spot.setLat(dto.lat());
                         spot.setLng(dto.lng());
-                        spot.setOccupied(false);
+                        spot.setOccupy(false);
                         spotRepository.save(spot);
                     }
                 } catch (Exception e) {

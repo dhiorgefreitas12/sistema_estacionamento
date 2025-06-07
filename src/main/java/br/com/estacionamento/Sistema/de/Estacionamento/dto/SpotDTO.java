@@ -5,4 +5,5 @@ public record SpotDTO(
         String sector,
         double lat,
         double lng
-) {}
+) {
+}

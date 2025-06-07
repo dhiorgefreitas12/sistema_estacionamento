@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @NoArgsConstructor
-@Table(name = "parkin_session")
+@Table(name = "parking_session")
 public class ParkingSession {
 
     @Id
