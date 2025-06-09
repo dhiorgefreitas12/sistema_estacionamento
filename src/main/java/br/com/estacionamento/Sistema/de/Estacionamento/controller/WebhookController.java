@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@Tag(name = "Webhook", description = "Recebe eventos do estacionamento")
 @RestController
 @RequestMapping("/webhook")
+@Tag(name = "Webhook", description = "Recebe eventos do estacionamento")
 public class WebhookController {
 
     @Autowired

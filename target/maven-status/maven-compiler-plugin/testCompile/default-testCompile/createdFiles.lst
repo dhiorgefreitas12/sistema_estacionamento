@@ -1,5 +1,7 @@
 br/com/estacionamento/Sistema/de/Estacionamento/controller/WebhookControllerTest.class
+br/com/estacionamento/Sistema/de/Estacionamento/controller/RevenueControllerTest.class
 br/com/estacionamento/Sistema/de/Estacionamento/controller/PlateStatusControllerTest.class
+br/com/estacionamento/Sistema/de/Estacionamento/service/RevenueServiceTest.class
 br/com/estacionamento/Sistema/de/Estacionamento/service/EventServiceTest.class
 br/com/estacionamento/Sistema/de/Estacionamento/service/GarageServiceTest.class
 br/com/estacionamento/Sistema/de/Estacionamento/service/PlateStatusServiceTest.class

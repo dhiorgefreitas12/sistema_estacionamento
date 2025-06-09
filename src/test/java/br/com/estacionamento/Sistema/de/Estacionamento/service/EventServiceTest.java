@@ -47,44 +47,29 @@ class EventServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    private WebhookEventDTO buildEvent(EventType type, String entry, String exit) {
+    private WebhookEventDTO createEvent(EventType type, String entry, String exit) {
         return new WebhookEventDTO(PLATE, entry, exit, LAT, LNG, type);
     }
 
     @Test
-    void testEntry_success() {
-        WebhookEventDTO event = buildEvent(EventType.ENTRY, TIME, TIME);
+    void shouldProcessEntrySuccessfully() {
+        WebhookEventDTO event = createEvent(EventType.ENTRY, TIME, TIME);
 
-        Spot spot = new Spot();
-        spot.setId(1L);
-        spot.setSector("A");
-        spot.setOccupy(false);
-
-        Sector sector = new Sector();
-        sector.setSector("A");
-        sector.setMaxCapacity(10);
-        sector.setBasePrice(10.0);
-
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(PLATE)).thenReturn(null);
-        when(spotRepository.findByLatAndLng(LAT, LNG)).thenReturn(Optional.of(spot));
-        when(sectorRepository.findBySector("A")).thenReturn(sector);
-        when(spotRepository.countBySectorAndOccupyTrue("A")).thenReturn(5L);
+        when(parkingSessionRepository.existsByLicensePlateAndExitTimeIsNull(PLATE)).thenReturn(false);
 
         eventService.processEvent(event);
 
         verify(parkingSessionRepository).save(any(ParkingSession.class));
-        verify(spotRepository).save(any(Spot.class));
     }
 
     @Test
-    void testEntry_sectorNaoExiste() {
-        WebhookEventDTO event = buildEvent(EventType.ENTRY, TIME, TIME);
+    void shouldThrowWhenSectorDoesNotExist() {
+        WebhookEventDTO event = createEvent(EventType.PARKED, TIME, TIME);
 
         Spot spot = new Spot();
         spot.setId(1L);
         spot.setSector("Z");
 
-        when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(PLATE)).thenReturn(null);
         when(spotRepository.findByLatAndLng(LAT, LNG)).thenReturn(Optional.of(spot));
         when(sectorRepository.findBySector("Z")).thenReturn(null);
 
@@ -92,17 +77,24 @@ class EventServiceTest {
     }
 
     @Test
-    void testParked_success() {
-        WebhookEventDTO event = buildEvent(EventType.PARKED, TIME, TIME);
+    void shouldProcessParkedSuccessfully() {
+        WebhookEventDTO event = createEvent(EventType.PARKED, TIME, TIME);
 
         Spot spot = new Spot();
         spot.setId(1L);
-        spot.setSector("B");
+        spot.setSector("A");
+
+        Sector sector = new Sector();
+        sector.setSector("A");
+        sector.setMaxCapacity(10);
+        sector.setBasePrice(10.0);
 
         ParkingSession session = new ParkingSession();
         session.setLicensePlate(PLATE);
 
         when(spotRepository.findByLatAndLng(LAT, LNG)).thenReturn(Optional.of(spot));
+        when(sectorRepository.findBySector("A")).thenReturn(sector);
+        when(spotRepository.countBySectorAndOccupyTrue("A")).thenReturn(4L);
         when(parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(PLATE)).thenReturn(session);
 
         eventService.processEvent(event);
@@ -112,11 +104,11 @@ class EventServiceTest {
     }
 
     @Test
-    void testExit_success() {
+    void shouldProcessExitSuccessfully() {
         LocalDateTime entry = LocalDateTime.now().minusMinutes(40);
         LocalDateTime exit = LocalDateTime.now();
 
-        WebhookEventDTO event = buildEvent(EventType.EXIT, entry.toString(), exit.toString());
+        WebhookEventDTO event = createEvent(EventType.EXIT, entry.toString(), exit.toString());
 
         ParkingSession session = new ParkingSession();
         session.setLicensePlate(PLATE);
@@ -143,13 +135,13 @@ class EventServiceTest {
     }
 
     @Test
-    void testEventInvalid() {
+    void shouldThrowWhenEventIsInvalid() {
         WebhookEventDTO event = new WebhookEventDTO(null, null, null, null, null, null);
         assertThrows(BusinessException.class, () -> eventService.processEvent(event));
     }
 
     @Test
-    void testEventUnknown() {
+    void shouldThrowWhenEventTypeIsUnknown() {
         WebhookEventDTO event = new WebhookEventDTO(PLATE, TIME, TIME, LAT, LNG, null);
         assertThrows(BusinessException.class, () -> eventService.processEvent(event));
     }

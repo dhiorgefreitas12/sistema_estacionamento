@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: br.com.estacionamento.Sistema.de.Estacionamento.controller.PlateStatusControllerTest
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.818 s -- in br.com.estacionamento.Sistema.de.Estacionamento.controller.PlateStatusControllerTest
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.861 s -- in br.com.estacionamento.Sistema.de.Estacionamento.controller.PlateStatusControllerTest

@@ -26,10 +26,10 @@ public class ParkingSession {
 
     private LocalDateTime exitTime;
 
-    @Column(length = 5, nullable = false)
+    @Column(length = 5, nullable = true)
     private String sector;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Long spotId;
 
     @Column()

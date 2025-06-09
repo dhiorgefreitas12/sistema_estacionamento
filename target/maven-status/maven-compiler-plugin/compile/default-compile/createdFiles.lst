@@ -1,6 +1,5 @@
 br/com/estacionamento/Sistema/de/Estacionamento/repository/SectorRepository.class
 br/com/estacionamento/Sistema/de/Estacionamento/dto/WebhookEventDTO.class
-br/com/estacionamento/Sistema/de/Estacionamento/exception/GlobalExceptionHandler.class
 br/com/estacionamento/Sistema/de/Estacionamento/SistemaDeEstacionamentoApplication.class
 br/com/estacionamento/Sistema/de/Estacionamento/exception/ApiError.class
 br/com/estacionamento/Sistema/de/Estacionamento/model/ParkingSession.class
@@ -20,11 +19,15 @@ br/com/estacionamento/Sistema/de/Estacionamento/controller/SpotStatusController.
 br/com/estacionamento/Sistema/de/Estacionamento/service/GarageService.class
 br/com/estacionamento/Sistema/de/Estacionamento/service/SpotStatusService.class
 br/com/estacionamento/Sistema/de/Estacionamento/dto/SpotDTO.class
+br/com/estacionamento/Sistema/de/Estacionamento/dto/RevenueResponseDTO.class
 br/com/estacionamento/Sistema/de/Estacionamento/integration/client/GarageClient.class
 br/com/estacionamento/Sistema/de/Estacionamento/controller/WebhookController.class
 br/com/estacionamento/Sistema/de/Estacionamento/dto/PlateStatusRequestDTO.class
 br/com/estacionamento/Sistema/de/Estacionamento/exception/ResourceNotFoundException.class
+br/com/estacionamento/Sistema/de/Estacionamento/dto/RevenueRequestDTO.class
+br/com/estacionamento/Sistema/de/Estacionamento/controller/RevenueController.class
 br/com/estacionamento/Sistema/de/Estacionamento/controller/PlateStatusController.class
+br/com/estacionamento/Sistema/de/Estacionamento/service/RevenueService.class
 br/com/estacionamento/Sistema/de/Estacionamento/repository/SpotRepository.class
 br/com/estacionamento/Sistema/de/Estacionamento/enums/EventType.class
 br/com/estacionamento/Sistema/de/Estacionamento/repository/ParkingSessionRepository.class

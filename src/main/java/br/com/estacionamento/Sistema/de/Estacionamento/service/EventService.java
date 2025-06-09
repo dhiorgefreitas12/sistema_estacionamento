@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 @Service
 public class EventService {
@@ -48,11 +49,37 @@ public class EventService {
     }
 
     private void handleEntry(WebhookEventDTO event, String plate) {
-        ParkingSession lastSession = parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(plate);
-        if (lastSession != null && lastSession.getExitTime() == null) return;
+        boolean hasActiveSession = parkingSessionRepository.existsByLicensePlateAndExitTimeIsNull(plate);
+        if (hasActiveSession) return;
+
+        LocalDateTime entryTime;
+        if (event.entry_time() != null && !event.entry_time().isBlank()) {
+            try {
+                entryTime = LocalDateTime.parse(event.entry_time(), formatter);
+            } catch (DateTimeParseException e) {
+                entryTime = LocalDateTime.now();
+            }
+        } else {
+            entryTime = LocalDateTime.now();
+        }
+
+        ParkingSession session = new ParkingSession();
+        session.setLicensePlate(plate);
+        session.setEntryTime(entryTime);
+        parkingSessionRepository.save(session);
+    }
+
+
+    private void handleParked(WebhookEventDTO event, String plate) {
+        if (event.lat() == null || event.lng() == null) {
+            throw new BusinessException("coordenadas de vaga são obrigatórias para o evento PARKED.");
+        }
 
         Spot spot = spotRepository.findByLatAndLng(event.lat(), event.lng())
                 .orElseThrow(() -> new ResourceNotFoundException("vaga nao encontrada para as coordenadas informadas."));
+
+        spot.setOccupy(true);
+        spotRepository.save(spot);
 
         Sector sector = sectorRepository.findBySector(spot.getSector());
         if (sector == null) {
@@ -62,10 +89,6 @@ public class EventService {
         long totalVagas = sector.getMaxCapacity();
         long ocupadas = spotRepository.countBySectorAndOccupyTrue(sector.getSector());
         double ocupacao = (double) ocupadas / totalVagas;
-
-        if (ocupadas >= totalVagas) {
-            throw new BusinessException("setor " + sector.getSector() + " esta com 100% de lotacao. Entrada não permitida.");
-        }
 
         double basePrice = sector.getBasePrice();
         if (ocupacao < 0.25) {
@@ -78,30 +101,11 @@ public class EventService {
             basePrice *= 1.25;
         }
 
-        spot.setOccupy(true);
-        spotRepository.save(spot);
-
-        ParkingSession session = new ParkingSession();
-        session.setLicensePlate(plate);
-        session.setEntryTime(LocalDateTime.parse(event.entry_time(), formatter));
-        session.setSector(spot.getSector());
-        session.setSpotId(spot.getId());
-        session.setPrice(basePrice);
-
-        parkingSessionRepository.save(session);
-    }
-
-    private void handleParked(WebhookEventDTO event, String plate) {
-        Spot spot = spotRepository.findByLatAndLng(event.lat(), event.lng())
-                .orElseThrow(() -> new ResourceNotFoundException("vaga nao encontrada para as coordenadas informadas."));
-
-        spot.setOccupy(true);
-        spotRepository.save(spot);
-
         ParkingSession session = parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(plate);
         if (session != null && session.getExitTime() == null) {
             session.setSector(spot.getSector());
             session.setSpotId(spot.getId());
+            session.setPrice(basePrice);
             parkingSessionRepository.save(session);
         }
     }
@@ -110,11 +114,10 @@ public class EventService {
         ParkingSession session = parkingSessionRepository.findTopByLicensePlateOrderByEntryTimeDesc(plate);
         if (session == null || session.getExitTime() != null) return;
 
-        LocalDateTime entryTime = session.getEntryTime();
         LocalDateTime exitTime = LocalDateTime.parse(event.exit_time(), formatter);
         session.setExitTime(exitTime);
 
-        long minutes = Duration.between(entryTime, exitTime).toMinutes();
+        long minutes = Duration.between(session.getEntryTime(), exitTime).toMinutes();
         double price = 0.0;
 
         if (minutes > 15) {
@@ -122,6 +125,7 @@ public class EventService {
             if (sector == null) {
                 throw new ResourceNotFoundException("setor '" + session.getSector() + "' nao encontrado para calculo de preco.");
             }
+
             price = calculatePrice(minutes, session.getPrice());
         }
 
